@@ -29,6 +29,7 @@ ARG BASE_PATH
 ENV BASE_PATH=$BASE_PATH
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATABASE_URL="postgresql://user:pass@localhost:5432/dummy"
+ENV DOCKER_BUILD=1
 
 RUN npm run build-docker
 

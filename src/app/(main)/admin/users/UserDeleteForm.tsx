@@ -1,4 +1,4 @@
-import { AlertDialog, Row } from '@umami/react-zen';
+import { AlertDialog, Row, useToast } from '@umami/react-zen';
 import { useDeleteQuery, useMessages, useModified } from '@/components/hooks';
 
 export function UserDeleteForm({
@@ -12,9 +12,10 @@ export function UserDeleteForm({
   onSave?: () => void;
   onClose?: () => void;
 }) {
-  const { messages, labels, t } = useMessages();
+  const { messages, labels, t, getErrorMessage } = useMessages();
   const { mutateAsync } = useDeleteQuery(`/users/${userId}`);
   const { touch } = useModified();
+  const { toast } = useToast();
 
   const handleConfirm = async () => {
     await mutateAsync(null, {
@@ -23,6 +24,9 @@ export function UserDeleteForm({
         touch(`users:${userId}`);
         onSave?.();
         onClose?.();
+      },
+      onError: (error: Error) => {
+        toast(getErrorMessage(error));
       },
     });
   };
