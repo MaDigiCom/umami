@@ -21,6 +21,7 @@ export function WebsiteData({ websiteId, onSave }: { websiteId: string; onSave?:
   const isAdmin = pathname.startsWith('/admin');
 
   const canTransferWebsite =
+    user.isAdmin ||
     (
       (!teamId &&
         teams?.data?.filter(({ members }) =>

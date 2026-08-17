@@ -16,7 +16,11 @@ import {
   useUserTeamsQuery,
   useWebsite,
 } from '@/components/hooks';
+import { UserSelect } from '@/components/input/UserSelect';
 import { ROLES } from '@/lib/constants';
+
+const TARGET_TEAM = 'team';
+const TARGET_USER = 'user';
 
 export function WebsiteTransferForm({
   websiteId,
@@ -33,6 +37,7 @@ export function WebsiteTransferForm({
   const { mutateAsync, error, isPending } = useUpdateQuery(`/websites/${websiteId}/transfer`);
   const { data: teams, isLoading } = useUserTeamsQuery(user.id);
   const isTeamWebsite = !!website?.teamId;
+  const canTargetUser = user.isAdmin && !isTeamWebsite;
 
   const items =
     teams?.data?.filter(({ members }) =>
@@ -42,11 +47,13 @@ export function WebsiteTransferForm({
       ),
     ) || [];
 
-  const handleSubmit = async (data: { teamId?: string }) => {
+  const handleSubmit = async (data: { teamId?: string; target?: string; targetUserId?: string }) => {
+    const toUser = canTargetUser && data.target === TARGET_USER;
+
     await mutateAsync(
       {
-        userId: website.teamId ? user.id : undefined,
-        teamId: website.userId ? data.teamId : undefined,
+        userId: website.teamId ? user.id : toUser ? data.targetUserId : undefined,
+        teamId: !toUser && website.userId ? data.teamId : undefined,
       },
       {
         onSuccess: async () => {
@@ -62,9 +69,15 @@ export function WebsiteTransferForm({
   }
 
   return (
-    <Form onSubmit={handleSubmit} error={getErrorMessage(error)} defaultValues={{ teamId: '' }}>
+    <Form
+      onSubmit={handleSubmit}
+      error={getErrorMessage(error)}
+      defaultValues={{ teamId: '', target: TARGET_TEAM, targetUserId: '' }}
+    >
       {({ watch }) => {
         const selectedTeamId = watch('teamId');
+        const selectedTargetUserId = watch('targetUserId');
+        const showUserSelect = canTargetUser && watch('target') === TARGET_USER;
 
         return (
           <>
@@ -75,8 +88,16 @@ export function WebsiteTransferForm({
                   : messages.transferUserWebsiteToTeam,
               )}
             </Text>
-            <FormField name="teamId">
-              {!isTeamWebsite && (
+            {canTargetUser && (
+              <FormField name="target">
+                <Select>
+                  <ListItem id={TARGET_TEAM}>{t(labels.team)}</ListItem>
+                  <ListItem id={TARGET_USER}>{t(labels.user)}</ListItem>
+                </Select>
+              </FormField>
+            )}
+            {!isTeamWebsite && !showUserSelect && (
+              <FormField name="teamId">
                 <Select>
                   {items.map(({ id, name }) => {
                     return (
@@ -86,14 +107,22 @@ export function WebsiteTransferForm({
                     );
                   })}
                 </Select>
-              )}
-            </FormField>
+              </FormField>
+            )}
+            {showUserSelect && (
+              <FormField name="targetUserId">
+                <UserSelect />
+              </FormField>
+            )}
             <FormButtons>
               <Button onPress={onClose}>{t(labels.cancel)}</Button>
               <FormSubmitButton
                 variant="primary"
                 isLoading={isPending}
-                isDisabled={!isTeamWebsite && !selectedTeamId}
+                isDisabled={
+                  !isTeamWebsite &&
+                  (showUserSelect ? !selectedTargetUserId : !selectedTeamId)
+                }
               >
                 {t(labels.transfer)}
               </FormSubmitButton>
