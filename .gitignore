@@ -26,6 +26,7 @@ next-env.d.ts
 /generated
 /src/generated
 pm2.yml
+ecosystem.config.*
 
 # misc
 .DS_Store
