@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { createRequire } from 'node:module';
 import createNextIntlPlugin from 'next-intl/plugin';
-import { getContentSecurityPolicy } from './src/lib/csp';
+import { getContentSecurityPolicy } from './src/lib/csp.ts';
 
 const pkg = createRequire(import.meta.url)('./package.json');
 
