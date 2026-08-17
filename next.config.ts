@@ -1,7 +1,9 @@
 import 'dotenv/config';
+import { createRequire } from 'node:module';
 import createNextIntlPlugin from 'next-intl/plugin';
-import pkg from './package.json' with { type: 'json' };
 import { getContentSecurityPolicy } from './src/lib/csp';
+
+const pkg = createRequire(import.meta.url)('./package.json');
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
